@@ -104,7 +104,12 @@ proc symToYamlAux(
     res.addf("\n$1storage: $2", [istr, makeYamlString($n.loc.storage)])
     if card(n.loc.flags) > 0:
       res.addf("\n$1flags: $2", [istr, makeYamlString($n.loc.flags)])
-    res.addf("\n$1r: $2", [istr, n.loc.r])
+
+    when (NimMajor, NimMinor) >= (2, 2):
+      res.addf("\n$1r: $2", [istr, n.loc.snippet])
+    else:
+      res.addf("\n$1r: $2", [istr, n.loc.r])
+
     res.addf("\n$1lode:\n$1    ", [istr])
     res.treeToYamlAux(conf, n.loc.lode, marker, indent + 1, maxRecDepth - 1)
 
@@ -134,9 +139,14 @@ proc typeToYamlAux(
     res.addf("\n$1align: $2", [istr, $(n.align)])
     if n.len > 0:
       res.addf("\n$1sons:")
-      for s in n.sons:
-        res.addf("\n$1  - ", [istr])
-        res.typeToYamlAux(conf, s, marker, indent + 1, maxRecDepth - 1)
+      when (NimMajor, NimMinor) >= (2, 2):
+        for i in 0 ..< n.len:
+          res.addf("\n$1  - ", [istr])
+          res.typeToYamlAux(conf, n[i], marker, indent + 1, maxRecDepth - 1)
+      else:
+        for s in n.sons:
+          res.addf("\n$1  - ", [istr])
+          res.typeToYamlAux(conf, s, marker, indent + 1, maxRecDepth - 1)
 
 proc treeToYamlAux(
     res: var string,
